@@ -19,14 +19,15 @@ def fetch_and_filter_zee():
             if line.startswith("#EXTINF"):
                 line_lower = line.lower()
                 
-                # Condition: 
-                # 1. Title mein 'zee' hona chahiye
-                # 2. Title ya group-title mein 'jio' nahi hona chahiye (aap aur bhi words add kar sakte hain jaise 'sports18' etc.)
-                is_zee = "zee" in line_lower
-                is_jio = "jio" in line_lower
+                # Check karein ki group-title "zee5" hai ya nahi
+                # M3U mein aamtaur par group-title='ZEE5' ya group-title="ZEE5" hota hai
+                is_zee5_group = 'group-title="zee5"' in line_lower or "group-title='zee5'" in line_lower or 'group-title="zee 5"' in line_lower or 'group-title="zee-5"' in line_lower or 'group-title="zee5' in line_lower
                 
-                if is_zee and not is_jio:
-                    # EXTINF aur uske baad ke saare tags/URL capture karo jab tak agli #EXTINF na aaye
+                # Check karein ki title ya line mein "news" toh nahi hai (news channels ignore karne ke liye)
+                is_news = "news" in line_lower
+                
+                # Agar group zee5 ka hai AUR wo news channel nahi hai, tabhi uthao
+                if is_zee5_group and not is_news:
                     channel_block = [line]
                     i += 1
                     while i < len(lines) and not lines[i].startswith("#EXTINF") and lines[i].strip() != "#EXTM3U":
@@ -41,7 +42,7 @@ def fetch_and_filter_zee():
         with open(output_file, "w", encoding="utf-8") as f:
             f.write("\n".join(zee_playlist))
             
-        print(f"Successfully saved clean Zee channels to {output_file}")
+        print(f"Successfully saved targeted Zee5 channels to {output_file}")
         
     except Exception as e:
         print(f"Error fetching or parsing playlist: {e}")

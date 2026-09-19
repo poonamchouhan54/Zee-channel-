@@ -1,0 +1,35 @@
+name: Fetch Zee M3U Channels
+
+on:
+  schedule:
+    # Har 30 minutes mein run hoga (Cron syntax)
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Manual trigger ke liye bhi option rahega
+
+jobs:
+  fetch-channels:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Run fetch script
+        run: python fetch_channels.py
+
+      - name: Commit and push updated M3U file
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "action@github.com"
+          git add output/zee_channels.m3u
+          git commit -m "Auto-update Zee M3U playlist [skip ci]" || exit 0
+          git push
